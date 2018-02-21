@@ -25,9 +25,9 @@ NachenBlaster::NachenBlaster(StudentWorld* world): Actor(world, IID_NACHENBLASTE
 
 bool NachenBlaster::isAlive(){
     if (m_health < 0)
-        return true;
-    else
         return false;
+    else
+        return true;
 }
 
 void NachenBlaster::doSomething(){
@@ -52,8 +52,7 @@ void NachenBlaster::doSomething(){
                 if (getY() > 0)
                     moveTo(getX(), getY() - 1);
                 break;
-                
-            //case KEY_PRESS_SPACE:
+            //case KEY_SPACE:    
             //case KEY_PRESS_ESCAPE:
             //case KEY_PRESS_TAB:
         }
