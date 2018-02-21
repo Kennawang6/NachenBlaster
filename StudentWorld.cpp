@@ -17,6 +17,10 @@ StudentWorld::StudentWorld(string assetDir)
     //initialize new data members?
 }
 
+StudentWorld::~StudentWorld(){
+    cleanUp();
+}
+
 int StudentWorld::init()
 {
     m_player = new NachenBlaster(this);
@@ -26,12 +30,28 @@ int StudentWorld::init()
 }
 
 int StudentWorld::move(){
-    // This code is here merely to allow the game to build, run, and terminate after you hit enter.
-    // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
-    decLives();
-    return GWSTATUS_PLAYER_DIED;
+    if (!m_player->isAlive())
+        return GWSTATUS_PLAYER_DIED;
+    m_player->doSomething();
+    list<Actor*>::iterator obj = m_actors.begin();
+    while (obj != m_actors.end()){
+        (*obj)->doSomething(); //why
+        if (!(*obj)->isAlive()){
+            delete *obj;
+            list<Actor*>::iterator temp = obj;
+            temp--;
+            m_actors.erase(obj);
+            obj = temp;
+        }
+        obj++;
+    }
+    if (randInt(1, 15) == 1)
+        m_actors.push_back(new Star(this));
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp(){
-    
+    delete m_player;
+    for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++)
+        delete *obj;
 }
