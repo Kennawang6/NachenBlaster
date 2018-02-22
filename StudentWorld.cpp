@@ -3,6 +3,7 @@
 #include <string>
 #include "Actor.h"
 #include <list>
+#include <sstream>
 using namespace std;
 
 GameWorld* createStudentWorld(string assetDir)
@@ -30,12 +31,22 @@ int StudentWorld::init()
 }
 
 int StudentWorld::move(){
-    if (!m_player->isAlive())
-        return GWSTATUS_PLAYER_DIED;
     m_player->doSomething();
+    
+    //doSomething loop
     list<Actor*>::iterator obj = m_actors.begin();
     while (obj != m_actors.end()){
-        (*obj)->doSomething(); //why
+        if((*obj)->isAlive())
+            (*obj)->doSomething();
+        if (!m_player->isAlive())
+            return GWSTATUS_PLAYER_DIED;
+        //if required ships killed, next level
+        obj++;
+    }
+    
+    //removeDeadObjects loop
+    obj = m_actors.begin();
+    while (obj != m_actors.end()){
         if (!(*obj)->isAlive()){
             delete *obj;
             list<Actor*>::iterator temp = obj;
@@ -45,8 +56,14 @@ int StudentWorld::move(){
         }
         obj++;
     }
+    
+    //stars
     if (randInt(1, 15) == 1)
         m_actors.push_back(new Star(this));
+    
+    updateDisplayText();
+    
+    //next tick
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -54,4 +71,11 @@ void StudentWorld::cleanUp(){
     delete m_player;
     for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++)
         delete *obj;
+}
+
+void StudentWorld::updateDisplayText(){
+    ostringstream stats;
+    stats << "Lives: " << getLives() << " Health: " << m_player->getHealth() << "% Score: " << getScore() << " Level: " << getLevel() << " Cabbages: " << m_player->getCabbages() << "% Torpedoes: " << m_player->getTorpedoes();
+    string text = stats.str();
+    setGameStatText(text);
 }
