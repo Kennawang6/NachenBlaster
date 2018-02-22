@@ -52,11 +52,24 @@ void NachenBlaster::doSomething(){
                 if (getY() > 0)
                     moveTo(getX(), getY() - 1);
                 break;
-            //case KEY_SPACE:    
+            
+            //case KEY_SPACE:
             //case KEY_PRESS_ESCAPE:
             //case KEY_PRESS_TAB:
         }
     }
+}
+
+int NachenBlaster::getCabbages(){
+    return m_cabbages / .3;
+}
+
+int NachenBlaster::getTorpedoes(){
+    return m_torpedoes;
+}
+
+int NachenBlaster::getHealth(){
+    return m_health * 2;
 }
 
 
