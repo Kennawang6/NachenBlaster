@@ -21,6 +21,7 @@ public:
 private:
     std::list<Actor*> m_actors;
     NachenBlaster* m_player;
+    void updateDisplayText();
 };
 
 #endif // STUDENTWORLD_H_
