@@ -25,6 +25,9 @@ public:
     NachenBlaster(StudentWorld* world);
     virtual bool isAlive();
     virtual void doSomething();
+    int getCabbages();//could become double?
+    int getTorpedoes();
+    int getHealth();
 private:
     int m_cabbages;
     int m_torpedoes;
