@@ -41,11 +41,11 @@ void NachenBlaster::doSomething(){
                     moveTo(getX() - 6, getY());
                 break;
             case KEY_PRESS_RIGHT:
-                if (getX() < 250)
+                if (getX() < VIEW_WIDTH - 5)
                     moveTo(getX() + 6, getY());
                 break;
             case KEY_PRESS_UP:
-                if (getY() < 250)
+                if (getY() < VIEW_HEIGHT - 5)
                     moveTo(getX(), getY() + 6);
                 break;
             case KEY_PRESS_DOWN:
@@ -77,7 +77,7 @@ int NachenBlaster::getHealth(){
 ////////
 //Star//
 ////////
-Star::Star(StudentWorld* world, int x): Actor(world, IID_STAR, x, randInt(0, 255), 0, randInt(1, 10)/20.0, 3){
+Star::Star(StudentWorld* world, int x): Actor(world, IID_STAR, x, randInt(0, VIEW_HEIGHT), 0, randInt(1, 10)/20.0, 3){
     //for init
 }
 
@@ -90,6 +90,4 @@ bool Star::isAlive(){
 
 void Star::doSomething(){
     moveTo(getX() - 1, getY());
-    //if (!isAlive())
-        //tell studentworld to kill, studentworld may do this on its own
 }
