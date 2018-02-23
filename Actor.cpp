@@ -37,20 +37,20 @@ void NachenBlaster::doSomething(){
     if(getWorld()->getKey(ch)){
         switch (ch){
             case KEY_PRESS_LEFT:
-                if (getX() > 0)
-                    moveTo(getX() - 1, getY());
+                if (getX() > 5)
+                    moveTo(getX() - 6, getY());
                 break;
             case KEY_PRESS_RIGHT:
-                if (getX() < 255)
-                    moveTo(getX() + 1, getY());
+                if (getX() < 250)
+                    moveTo(getX() + 6, getY());
                 break;
             case KEY_PRESS_UP:
-                if (getY() < 255)
-                    moveTo(getX(), getY() + 1);
+                if (getY() < 250)
+                    moveTo(getX(), getY() + 6);
                 break;
             case KEY_PRESS_DOWN:
-                if (getY() > 0)
-                    moveTo(getX(), getY() - 1);
+                if (getY() > 5)
+                    moveTo(getX(), getY() - 6);
                 break;
             
             //case KEY_SPACE:
