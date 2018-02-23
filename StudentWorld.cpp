@@ -19,7 +19,9 @@ StudentWorld::StudentWorld(string assetDir)
 }
 
 StudentWorld::~StudentWorld(){
-    cleanUp();
+    for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++)
+        delete *obj;
+    delete m_player;
 }
 
 int StudentWorld::init()
@@ -69,8 +71,11 @@ int StudentWorld::move(){
 
 void StudentWorld::cleanUp(){
     delete m_player;
-    for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++)
+    m_player = nullptr;
+    for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++){
         delete *obj;
+        m_actors.pop_front();
+    }
 }
 
 void StudentWorld::updateDisplayText(){
