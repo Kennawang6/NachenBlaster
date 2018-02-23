@@ -28,7 +28,7 @@ int StudentWorld::init()
 {
     m_player = new NachenBlaster(this);
     for (int i = 0; i < 30; i++)
-        m_actors.push_back(new Star(this, randInt(0, 255)));
+        m_actors.push_back(new Star(this, randInt(0, VIEW_WIDTH)));
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -50,7 +50,7 @@ int StudentWorld::move(){
     obj = m_actors.begin();
     while (obj != m_actors.end()){
         if (!(*obj)->isAlive()){
-            delete *obj;
+            delete (*obj);
             list<Actor*>::iterator temp = obj;
             temp--;
             m_actors.erase(obj);
@@ -72,8 +72,8 @@ int StudentWorld::move(){
 void StudentWorld::cleanUp(){
     delete m_player;
     m_player = nullptr;
-    for (list<Actor*>::iterator obj = m_actors.begin(); obj != m_actors.end(); obj++){
-        delete *obj;
+    while (!m_actors.empty()){
+        delete *m_actors.begin();
         m_actors.pop_front();
     }
 }
