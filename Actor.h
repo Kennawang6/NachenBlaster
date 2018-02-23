@@ -58,7 +58,7 @@ class Snagglegon: public Alien{
 
 class Star: public Actor{
 public:
-    Star(StudentWorld* world, int x = 255); //use no parameters during tick, use randInt during init
+    Star(StudentWorld* world, int x = VIEW_WIDTH); //use no parameters during tick, use randInt during init
     virtual bool isAlive();
     virtual void doSomething();
 };
