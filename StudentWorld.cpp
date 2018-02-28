@@ -26,6 +26,7 @@ StudentWorld::~StudentWorld(){
 
 int StudentWorld::init()
 {
+    m_aliensLeft = 6 + getLevel() * 4;
     m_player = new NachenBlaster(this);
     for (int i = 0; i < 30; i++)
         m_actors.push_back(new Star(this, randInt(0, VIEW_WIDTH)));
@@ -35,20 +36,13 @@ int StudentWorld::init()
 int StudentWorld::move(){
     m_player->doSomething();
     
-    //doSomething loop
+    //loops through all actors
     list<Actor*>::iterator obj = m_actors.begin();
     while (obj != m_actors.end()){
+        //do something
         if((*obj)->isAlive())
             (*obj)->doSomething();
-        if (!m_player->isAlive())
-            return GWSTATUS_PLAYER_DIED;
-        //if required ships killed, next level
-        obj++;
-    }
-    
-    //removeDeadObjects loop
-    obj = m_actors.begin();
-    while (obj != m_actors.end()){
+        //remove dead objects
         if (!(*obj)->isAlive()){
             delete (*obj);
             list<Actor*>::iterator temp = obj;
@@ -56,6 +50,8 @@ int StudentWorld::move(){
             m_actors.erase(obj);
             obj = temp;
         }
+        if (!m_player->isAlive())
+            return GWSTATUS_PLAYER_DIED;
         obj++;
     }
     
@@ -76,6 +72,20 @@ void StudentWorld::cleanUp(){
         delete *m_actors.begin();
         m_actors.pop_front();
     }
+}
+
+void StudentWorld::fireCabbage(){
+    m_actors.push_back(new Cabbage(this, m_player->getX() + 12, m_player->getY()));
+    playSound(SOUND_PLAYER_SHOOT);
+}
+
+void StudentWorld::fireTorpedo(bool playerFired, int startX, int startY){
+    m_actors.push_back(new FlatulenceTorpedo(this, startX, startY, playerFired));
+    playSound(SOUND_TORPEDO);
+}
+
+void StudentWorld::killedAlien(){
+    m_aliensLeft--;
 }
 
 void StudentWorld::updateDisplayText(){
