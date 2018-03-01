@@ -163,7 +163,8 @@ void Alien::doSomething(){
     if (handleCollisions())
         return;
     handleFlightPlan();
-    fireProjectile();
+    if (getWorld()->playerInLineOfFire(this))
+        shoot();
     fly();
     handleCollisions();
 }
@@ -174,11 +175,6 @@ void Alien::setFlightDirection(int direction){
 
 int Alien::getFlightDirection(){
     return m_flightDirection;
-}
-
-void Alien::fireProjectile(){
-    if (getWorld()->playerInLineOfFire(this))
-        shoot();
 }
 
 double Alien::getTravelSpeed(){
