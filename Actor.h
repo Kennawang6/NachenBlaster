@@ -18,6 +18,7 @@ public:
     void setAlien();
     bool isAlien();
     StudentWorld* getWorld();
+    virtual void takeDamage(double damage);
 private:
     StudentWorld* m_world;
     bool m_isDead;
@@ -129,7 +130,7 @@ public:
 
 class Star: public Actor{
 public:
-    Star(StudentWorld* world, double x = VIEW_WIDTH); //use no parameters during tick, use randInt during init
+    Star(StudentWorld* world, double x = VIEW_WIDTH - 1); //use no parameters during tick, use randInt during init
     virtual ~Star();
     virtual void doSomething();
 };
@@ -144,7 +145,7 @@ public:
     virtual ~Projectile();
     virtual bool handlePlayerCollisions();
     virtual bool handleAlienCollisions(); //calls damage
-    virtual void damage(Ship* target) = 0;
+    virtual void damage(Actor* target) = 0;
     virtual bool handleCollisions() = 0; //redirects to player/alien
 };
 
@@ -156,7 +157,7 @@ public:
     virtual ~Cabbage();
     virtual void fly();
     virtual bool handleCollisions();
-    virtual void damage(Ship* target);
+    virtual void damage(Actor* target);
 };
 
 
@@ -166,7 +167,7 @@ public:
     Turnip(StudentWorld* world, double startX, double startY);
     virtual ~Turnip();
     virtual void fly();
-    virtual void damage(Ship* target);
+    virtual void damage(Actor* target);
     virtual bool handleCollisions();
 };
 
@@ -178,7 +179,7 @@ public:
     virtual ~FlatulenceTorpedo();
     virtual void fly();
     virtual bool handleCollisions();
-    virtual void damage(Ship* target);
+    virtual void damage(Actor* target);
 private:
     bool m_fromPlayer;
 };
