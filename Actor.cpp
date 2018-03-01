@@ -44,7 +44,7 @@ Ship::Ship(StudentWorld* world, int imageID, double health, double startX, doubl
 Ship::~Ship(){}
 
 double Ship::getHealth(){
-    return m_health * 2;
+    return m_health;
 }
 
 void Ship::takeDamage(double amount){
@@ -482,7 +482,7 @@ void Goodie::doSomething(){
         return;
     if (handleCollisions())
         return;
-    moveTo(getX() - .75, getY() - .75);
+    moveTo(getX() - 0.75, getY() - 0.75);
     handleCollisions();
 }
 
@@ -514,6 +514,7 @@ void RepairGoodie::notifyPlayer(NachenBlaster* player){
 //ExtraLifeGoodie//
 ///////////////////
 ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_LIFE_GOODIE, startX, startY){}
+
 void ExtraLifeGoodie::notifyPlayer(NachenBlaster* player){
     getWorld()->incLives();
 }
