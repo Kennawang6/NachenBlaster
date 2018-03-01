@@ -48,6 +48,17 @@ double Ship::getHealth(){
 
 void Ship::takeDamage(double amount){
     m_health -= amount;
+    if (m_health < 0){
+        setDead();
+        getWorld()->playSound(SOUND_DEATH);
+        
+    }
+    else
+        getWorld()->playSound(SOUND_BLAST);
+}
+
+void Ship::addHealth(double amount){
+    m_health += amount;
 }
 
 
@@ -104,6 +115,8 @@ void NachenBlaster::doSomething(){
     }
     if (m_cabbages < 30)
         m_cabbages++;
+    if (getHealth() <= 0)
+        setDead();
 }
 
 int NachenBlaster::getCabbages(){
@@ -114,58 +127,129 @@ int NachenBlaster::getTorpedoes(){
     return m_torpedoes;
 }
 
+void NachenBlaster::repair(){
+    if (getHealth() >= 40)
+        addHealth(50 - getHealth());
+    else
+        addHealth(10);
+}
+
+void NachenBlaster::incTorpedoes(){
+    m_torpedoes += 5;
+}
+
+void NachenBlaster::getKilled(){
+    setDead();
+    getWorld()->playSound(SOUND_DEATH);
+}
+
 
 
 /////////
 //Alien//
 /////////
-Alien::Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction): Ship(world, imageID, health, startX, startY, 0, 1.5, 1), m_travelSpeed(speed), m_flightPlan(0), m_flightDirection(direction){
+Alien::Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction): Ship(world, imageID, health, startX, startY, 0, 1.5, 1), m_travelSpeed(speed), m_flightDirection(direction){
     setAlien();
 }
 
 Alien::~Alien(){}
 
-double Alien::getFlightPlan(){
-    return m_flightPlan;
-}
-
-void Alien::handleFlightPlan(){
-    if (getY() > 0 && getY() < VIEW_HEIGHT - 1 && m_flightPlan > 0)
+void Alien::doSomething(){
+    if (!isAlive())
         return;
-    if (getY() <= 0)
-        m_flightDirection = 1;
-    else if (getY() >= VIEW_HEIGHT - 1)
-        m_flightDirection = -1;
-    else
-        m_flightDirection = randInt(-1, 1);
-    m_flightPlan = randInt(1, 32);
+    if (getX() < 0){
+        setDead();
+        return;
+    }
+    if (handleCollisions())
+        return;
+    handleFlightPlan();
+    fireProjectile();
+    fly();
+    handleCollisions();
 }
 
 void Alien::setFlightDirection(int direction){
     m_flightDirection = direction;
 }
 
-void Alien::fly(){
-    switch (m_flightDirection){
+int Alien::getFlightDirection(){
+    return m_flightDirection;
+}
+
+void Alien::fireProjectile(){
+    if (getWorld()->playerInLineOfFire(this))
+        shoot();
+}
+
+double Alien::getTravelSpeed(){
+    return m_travelSpeed;
+}
+
+bool Alien::handleCollisions(){
+    NachenBlaster* n = getWorld()->getCollidingPlayer(this);
+    if (n == nullptr)
+        return false;
+    collideWithPlayer(n);
+    getKilled();
+    return true;
+}
+
+void Alien::getKilled(){
+    setDead();
+    getWorld()->recordAlienDestroyed();
+    incScore();
+    getWorld()->playSound(SOUND_DEATH);
+    getWorld()->addActor(new Explosion(getWorld(), getX(), getY()));
+}
+
+
+
+/////////////
+//PoorAlien//
+/////////////
+PoorAlien::PoorAlien(StudentWorld* world, int imageID, double health, double startX, double startY): Alien(world, imageID, health, startX, startY, 2.0, 0), m_flightPlan(0){}
+
+void PoorAlien::handleFlightPlan(){
+    if (getY() > 0 && getY() < VIEW_HEIGHT - 1 && m_flightPlan > 0)
+        return;
+    if (getY() <= 0)
+        setFlightDirection(1);
+    else if (getY() >= VIEW_HEIGHT - 1)
+        setFlightDirection(-1);
+    else
+        setFlightDirection(randInt(-1, 1));
+    m_flightPlan = randInt(1, 32);
+}
+
+void PoorAlien::fly(){
+    switch (getFlightDirection()){
         case -1:
-            moveTo(getX() - m_travelSpeed, getY() - m_travelSpeed);
+            moveTo(getX() - getTravelSpeed(), getY() - getTravelSpeed());
             break;
         case 0:
-            moveTo(getX() - m_travelSpeed, getY());
+            moveTo(getX() - getTravelSpeed(), getY());
             break;
         case 1:
-            moveTo(getX() - m_travelSpeed, getY() + m_travelSpeed);
+            moveTo(getX() - getTravelSpeed(), getY() + getTravelSpeed());
             break;
     }
     m_flightPlan--;
 }
 
-void Alien::fireProjectile(){
-    if (getX() > getWorld()->getPlayer()->getX() && getY() >= getWorld()->getPlayer()->getY() - 4 && getY() <= getWorld()->getPlayer()->getY() + 4)
-        if (randInt(1, 20 / getWorld()->getLevel() + 5) == 1){
-            getWorld()->addActor(new Turnip(getWorld(), getX() - 14, getY()));
-            getWorld()->playSound(SOUND_ALIEN_SHOOT);
-        }
+void PoorAlien::shoot(){
+    if (randInt(1, 20 / getWorld()->getLevel() + 5) == 1){
+        getWorld()->addActor(new Turnip(getWorld(), getX() - 14, getY()));
+        getWorld()->playSound(SOUND_ALIEN_SHOOT);
+    }
+}
+
+void PoorAlien::collideWithPlayer(NachenBlaster* player){
+    player->takeDamage(5);
+}
+
+void PoorAlien::incScore(){
+    getWorld()->increaseScore(250);
 }
 
 
@@ -173,52 +257,29 @@ void Alien::fireProjectile(){
 ////////////
 //Smallgon//
 ////////////
-Smallgon::Smallgon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMALLGON, health, startX, startY, 2.0, 0){}
+Smallgon::Smallgon(StudentWorld* world, double health, double startX, double startY): PoorAlien(world, IID_SMALLGON, health, startX, startY){}
 
 Smallgon::~Smallgon(){}
-
-void Smallgon::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() < 0){
-        setDead();
-        return;
-    }
-    
-    //collision detection
-    
-    handleFlightPlan();
-    fireProjectile();
-    fly();
-    if (getX() < 0)
-        setDead();
-}
 
 
 
 ////////////
 //Smoregon//
 ////////////
-Smoregon::Smoregon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMOREGON, health, startX, startY, 2.0, 0){}
+Smoregon::Smoregon(StudentWorld* world, double health, double startX, double startY): PoorAlien(world, IID_SMOREGON, health, startX, startY){}
 
 Smoregon::~Smoregon(){}
 
-void Smoregon::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() < 0){
-        setDead();
-        return;
+void Smoregon::dropGoodie(){
+    if (randInt(1, 3) == 1){
+        if (randInt(1, 2) == 1)
+            getWorld()->addActor(new RepairGoodie(getWorld(), getX(), getY()));
+        else
+            getWorld()->addActor(new ExtraLifeGoodie(getWorld(), getX(), getY()));
     }
-    
-    //collision detection
-    
-    handleFlightPlan();
-    fireProjectile();
-    fly();
-    if (getX() < 0)
-        setDead();
 }
+
+void Smallgon::dropGoodie(){}
 
 
 
@@ -229,28 +290,38 @@ Snagglegon::Snagglegon(StudentWorld* world, double health, double startX, double
 
 Snagglegon::~Snagglegon(){}
 
-void Snagglegon::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() < 0){
-        setDead();
-        return;
-    }
-    
-    //collisions
-    
-    handleFlightPlan();
-    fireProjectile();
-    fly();
-    if (getX() < 0)
-        setDead();
-}
-
 void Snagglegon::handleFlightPlan(){
     if (getY() >= VIEW_HEIGHT - 1)
         setFlightDirection(-1);
     else if (getY() <= 0)
         setFlightDirection(1);
+}
+
+void Snagglegon::fly(){
+    if (getFlightDirection() == 1)
+        moveTo(getX() - getTravelSpeed(), getY() + getTravelSpeed());
+    if (getFlightDirection() == -1)
+        moveTo(getX() - getTravelSpeed(), getY() - getTravelSpeed());
+}
+
+void Snagglegon::shoot(){
+    if (randInt(1, (15 / getWorld()->getLevel())+10) == 1){
+        getWorld()->addActor(new FlatulenceTorpedo(getWorld(), getX() - 14, getY(), false));
+        getWorld()->playSound(SOUND_TORPEDO);
+    }
+}
+
+void Snagglegon::dropGoodie(){
+    if (randInt(1, 6) == 1)
+        getWorld()->addActor(new FlatulenceTorpedoGoodie(getWorld(), getX(), getY()));
+}
+
+void Snagglegon::collideWithPlayer(NachenBlaster* player){
+    player->takeDamage(15);
+}
+
+void Snagglegon::incScore(){
+    getWorld()->increaseScore(1000);
 }
 
 
@@ -275,23 +346,37 @@ Projectile::Projectile(StudentWorld* world, int imageID, double startX, double s
 
 Projectile::~Projectile(){}
 
-void Projectile::alienCollsion(double damage){
-    Actor* n = getWorld()->getOneCollidingAlien(this);
-    if (n == nullptr)
+void Projectile::doSomething(){
+    if (!isAlive())
         return;
-        
-        //decrease n's health
-        
+    if (getX() < 0){
         setDead();
+        return;
+    }
+    if (handleCollisions())
+        return;
+    fly();
+    handleCollisions();
 }
 
-void Projectile::playerCollsion(double damage){
-    NachenBlaster* p = getWorld()->getCollidingPlayer(this);
-    if (p == nullptr)
-        return;
-    p->takeDamage(damage);
+bool Projectile::handlePlayerCollisions(){
+    NachenBlaster* n = getWorld()->getCollidingPlayer(this);
+    if (n == nullptr)
+        return false;
     setDead();
+    damage(n);
+    return true;
 }
+
+bool Projectile::handleAlienCollisions(){ //damage aliens
+    Actor* n = getWorld()->getOneCollidingAlien(this);
+    if (n == nullptr)
+        return false;
+    //take damage
+    setDead();
+    return true;
+}
+
 
 
 
@@ -302,20 +387,17 @@ Cabbage::Cabbage(StudentWorld* world, double startX, double startY): Projectile(
 
 Cabbage::~Cabbage(){}
 
-void Cabbage::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() >= VIEW_WIDTH){
-        setDead();
-        return;
-    }
-    
-    alienCollsion(2);
-    
+void Cabbage::fly(){
     moveTo(getX() + 8, getY());
     setDirection(getDirection() + 20);
-    
-    alienCollsion(2);
+}
+
+bool Cabbage::handleCollisions(){
+    return handleAlienCollisions();
+}
+
+void Cabbage::damage(Ship* target){
+    target->takeDamage(2);
 }
 
 
@@ -327,20 +409,17 @@ Turnip::Turnip(StudentWorld* world, double startX, double startY): Projectile(wo
 
 Turnip::~Turnip(){}
 
-void Turnip::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() < 0){
-        setDead();
-        return;
-    }
-    
-    alienCollsion(2);
-    
+void Turnip::fly(){
     moveTo(getX() - 6, getY());
     setDirection(getDirection() + 20);
-    
-    alienCollsion(2);
+}
+
+bool Turnip::handleCollisions(){
+    return handlePlayerCollisions();
+}
+
+void Turnip::damage(Ship* target){
+    target->takeDamage(2);
 }
 
 
@@ -355,28 +434,22 @@ FlatulenceTorpedo::FlatulenceTorpedo(StudentWorld* world, double startX, double 
 
 FlatulenceTorpedo::~FlatulenceTorpedo(){}
 
-void FlatulenceTorpedo::doSomething(){
-    if (!isAlive())
-        return;
-    if (getX() < 0 || getX() >= VIEW_WIDTH){
-        setDead();
-        return;
-    }
-    
-    if (m_fromPlayer)
-        alienCollsion(8);
-    else
-        playerCollsion(8);
-    
+void FlatulenceTorpedo::fly(){
     if (m_fromPlayer)
         moveTo(getX() + 8, getY());
     else
         moveTo(getX() - 8, getY());
-    
+}
+
+bool FlatulenceTorpedo::handleCollisions(){
     if (m_fromPlayer)
-        alienCollsion(8);
+        return handleAlienCollisions();
     else
-        playerCollsion(8);
+        return handlePlayerCollisions();
+}
+
+void FlatulenceTorpedo::damage(Ship* target){
+    target->takeDamage(8);
 }
 
 
@@ -402,21 +475,56 @@ void Explosion::doSomething(){
 //////////
 //Goodie//
 //////////
+Goodie::Goodie(StudentWorld* world, int imageID, double startX, double startY): Actor(world, imageID, startX, startY, 0, 0.5, 1){}
+
+void Goodie::doSomething(){
+    if (!isAlive())
+        return;
+    if (handleCollisions())
+        return;
+    moveTo(getX() - .75, getY() - .75);
+    handleCollisions();
+}
+
+bool Goodie::handleCollisions(){
+    NachenBlaster* p = getWorld()->getCollidingPlayer(this);
+    if (p == nullptr)
+        return false;
+    getWorld()->increaseScore(100);
+    notifyPlayer(p);
+    setDead();
+    getWorld()->playSound(SOUND_GOODIE);
+    return true;
+}
 
 
 
 ////////////////
 //RepairGoodie//
 ////////////////
+RepairGoodie::RepairGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_REPAIR_GOODIE, startX, startY){}
+
+void RepairGoodie::notifyPlayer(NachenBlaster* player){
+    player->repair();
+}
 
 
 
 ///////////////////
 //ExtraLifeGoodie//
 ///////////////////
+ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_LIFE_GOODIE, startX, startY){}
+void ExtraLifeGoodie::notifyPlayer(NachenBlaster* player){
+    getWorld()->incLives();
+}
 
 
 
-/////////////////
-//TorpedoGoodie//
-/////////////////
+///////////////////////////
+//FlatulenceTorpedoGoodie//
+///////////////////////////
+FlatulenceTorpedoGoodie::FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_TORPEDO_GOODIE, startX, startY){}
+
+void FlatulenceTorpedoGoodie::notifyPlayer(NachenBlaster* player){
+    player->incTorpedoes();
+}
