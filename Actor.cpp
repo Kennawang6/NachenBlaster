@@ -119,18 +119,61 @@ int NachenBlaster::getTorpedoes(){
 /////////
 //Alien//
 /////////
-Alien::Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed): Ship(world, imageID, health, startX, startY, 0, 1.5, 1), m_travelSpeed(speed), m_flightPlan(0){
+Alien::Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction): Ship(world, imageID, health, startX, startY, 0, 1.5, 1), m_travelSpeed(speed), m_flightPlan(0), m_flightDirection(direction){
     setAlien();
 }
 
 Alien::~Alien(){}
+
+double Alien::getFlightPlan(){
+    return m_flightPlan;
+}
+
+void Alien::handleFlightPlan(){
+    if (getY() > 0 && getY() < VIEW_HEIGHT - 1 && m_flightPlan > 0)
+        return;
+    if (getY() <= 0)
+        m_flightDirection = 1;
+    else if (getY() >= VIEW_HEIGHT - 1)
+        m_flightDirection = -1;
+    else
+        m_flightDirection = randInt(-1, 1);
+    m_flightPlan = randInt(1, 32);
+}
+
+void Alien::setFlightDirection(int direction){
+    m_flightDirection = direction;
+}
+
+void Alien::fly(){
+    switch (m_flightDirection){
+        case -1:
+            moveTo(getX() - m_travelSpeed, getY() - m_travelSpeed);
+            break;
+        case 0:
+            moveTo(getX() - m_travelSpeed, getY());
+            break;
+        case 1:
+            moveTo(getX() - m_travelSpeed, getY() + m_travelSpeed);
+            break;
+    }
+    m_flightPlan--;
+}
+
+void Alien::fireProjectile(){
+    if (getX() > getWorld()->getPlayer()->getX() && getY() >= getWorld()->getPlayer()->getY() - 4 && getY() <= getWorld()->getPlayer()->getY() + 4)
+        if (randInt(1, 20 / getWorld()->getLevel() + 5) == 1){
+            getWorld()->addActor(new Turnip(getWorld(), getX() - 14, getY()));
+            getWorld()->playSound(SOUND_ALIEN_SHOOT);
+        }
+}
 
 
 
 ////////////
 //Smallgon//
 ////////////
-Smallgon::Smallgon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMALLGON, health, startX, startY, 2.0){}
+Smallgon::Smallgon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMALLGON, health, startX, startY, 2.0, 0){}
 
 Smallgon::~Smallgon(){}
 
@@ -142,7 +185,11 @@ void Smallgon::doSomething(){
         return;
     }
     
-    moveTo(getX() - 2, getY());
+    //collision detection
+    
+    handleFlightPlan();
+    fireProjectile();
+    fly();
     if (getX() < 0)
         setDead();
 }
@@ -152,7 +199,7 @@ void Smallgon::doSomething(){
 ////////////
 //Smoregon//
 ////////////
-Smoregon::Smoregon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMOREGON, health, startX, startY, 2.0){}
+Smoregon::Smoregon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SMOREGON, health, startX, startY, 2.0, 0){}
 
 Smoregon::~Smoregon(){}
 
@@ -164,7 +211,11 @@ void Smoregon::doSomething(){
         return;
     }
     
-    moveTo(getX() - 2, getY());
+    //collision detection
+    
+    handleFlightPlan();
+    fireProjectile();
+    fly();
     if (getX() < 0)
         setDead();
 }
@@ -174,7 +225,7 @@ void Smoregon::doSomething(){
 //////////////
 //Snagglegon//
 //////////////
-Snagglegon::Snagglegon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SNAGGLEGON, health, startX, startY, 1.75){}
+Snagglegon::Snagglegon(StudentWorld* world, double health, double startX, double startY): Alien(world, IID_SNAGGLEGON, health, startX, startY, 1.75, -1){}
 
 Snagglegon::~Snagglegon(){}
 
@@ -186,9 +237,20 @@ void Snagglegon::doSomething(){
         return;
     }
     
-    moveTo(getX() - 2, getY());
+    //collisions
+    
+    handleFlightPlan();
+    fireProjectile();
+    fly();
     if (getX() < 0)
         setDead();
+}
+
+void Snagglegon::handleFlightPlan(){
+    if (getY() >= VIEW_HEIGHT - 1)
+        setFlightDirection(-1);
+    else if (getY() <= 0)
+        setFlightDirection(1);
 }
 
 
@@ -213,14 +275,22 @@ Projectile::Projectile(StudentWorld* world, int imageID, double startX, double s
 
 Projectile::~Projectile(){}
 
-void Projectile::handleCollsion(int damage){
+void Projectile::alienCollsion(double damage){
     Actor* n = getWorld()->getOneCollidingAlien(this);
-    if (n != nullptr){
+    if (n == nullptr)
+        return;
         
         //decrease n's health
         
         setDead();
-    }
+}
+
+void Projectile::playerCollsion(double damage){
+    NachenBlaster* p = getWorld()->getCollidingPlayer(this);
+    if (p == nullptr)
+        return;
+    p->takeDamage(damage);
+    setDead();
 }
 
 
@@ -240,12 +310,12 @@ void Cabbage::doSomething(){
         return;
     }
     
-    handleCollsion(2);
+    alienCollsion(2);
     
     moveTo(getX() + 8, getY());
     setDirection(getDirection() + 20);
     
-    handleCollsion(2);
+    alienCollsion(2);
 }
 
 
@@ -265,12 +335,12 @@ void Turnip::doSomething(){
         return;
     }
     
-    handleCollsion(2);
+    alienCollsion(2);
     
     moveTo(getX() - 6, getY());
     setDirection(getDirection() + 20);
     
-    handleCollsion(2);
+    alienCollsion(2);
 }
 
 
@@ -293,14 +363,20 @@ void FlatulenceTorpedo::doSomething(){
         return;
     }
     
-    handleCollsion(8);
+    if (m_fromPlayer)
+        alienCollsion(8);
+    else
+        playerCollsion(8);
     
     if (m_fromPlayer)
         moveTo(getX() + 8, getY());
     else
         moveTo(getX() - 8, getY());
     
-    handleCollsion(8);
+    if (m_fromPlayer)
+        alienCollsion(8);
+    else
+        playerCollsion(8);
 }
 
 
