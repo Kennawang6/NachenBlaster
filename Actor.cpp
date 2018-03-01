@@ -32,6 +32,7 @@ bool Actor::isAlien(){
     return m_isAlien;
 }
 
+void Actor::takeDamage(double damage) {}
 
 
 
@@ -49,9 +50,7 @@ double Ship::getHealth(){
 void Ship::takeDamage(double amount){
     m_health -= amount;
     if (m_health < 0){
-        setDead();
-        getWorld()->playSound(SOUND_DEATH);
-        
+        getKilled();
     }
     else
         getWorld()->playSound(SOUND_BLAST);
@@ -66,7 +65,7 @@ void Ship::addHealth(double amount){
 /////////////////
 //NachenBlaster//
 /////////////////
-NachenBlaster::NachenBlaster(StudentWorld* world): Ship(world, IID_NACHENBLASTER, 50, 0, 128, 0, 1.0, 0), m_cabbages(30), m_torpedoes(10){}
+NachenBlaster::NachenBlaster(StudentWorld* world): Ship(world, IID_NACHENBLASTER, 50, 0, 128, 0, 1.0, 0), m_cabbages(30), m_torpedoes(0){}
 
 NachenBlaster::~NachenBlaster(){}
 
@@ -95,7 +94,7 @@ void NachenBlaster::doSomething(){
                 break;
                 //euclidean collisions
             case KEY_PRESS_SPACE:
-                if (m_cabbages > 5){
+                if (m_cabbages >= 5){
                     getWorld()->addActor(new Cabbage(getWorld(), getX() + 12, getY()));
                     getWorld()->playSound(SOUND_PLAYER_SHOOT);
                     m_cabbages -= 5;
@@ -111,7 +110,6 @@ void NachenBlaster::doSomething(){
                 }
                 break;
         }
-        //check collisions
     }
     if (m_cabbages < 30)
         m_cabbages++;
@@ -141,6 +139,7 @@ void NachenBlaster::incTorpedoes(){
 void NachenBlaster::getKilled(){
     setDead();
     getWorld()->playSound(SOUND_DEATH);
+    getWorld()->decLives();
 }
 
 
@@ -191,7 +190,7 @@ bool Alien::handleCollisions(){
     if (n == nullptr)
         return false;
     collideWithPlayer(n);
-    getKilled();
+    takeDamage(100);
     return true;
 }
 
@@ -199,6 +198,7 @@ void Alien::getKilled(){
     setDead();
     getWorld()->recordAlienDestroyed();
     incScore();
+    dropGoodie();
     getWorld()->playSound(SOUND_DEATH);
     getWorld()->addActor(new Explosion(getWorld(), getX(), getY()));
 }
@@ -261,6 +261,8 @@ Smallgon::Smallgon(StudentWorld* world, double health, double startX, double sta
 
 Smallgon::~Smallgon(){}
 
+void Smallgon::dropGoodie(){}
+
 
 
 ////////////
@@ -278,8 +280,6 @@ void Smoregon::dropGoodie(){
             getWorld()->addActor(new ExtraLifeGoodie(getWorld(), getX(), getY()));
     }
 }
-
-void Smallgon::dropGoodie(){}
 
 
 
@@ -329,7 +329,7 @@ void Snagglegon::incScore(){
 ////////
 //Star//
 ////////
-Star::Star(StudentWorld* world, double x): Actor(world, IID_STAR, x, randInt(0, VIEW_HEIGHT), 0, randInt(1, 10)/20.0, 3){}
+Star::Star(StudentWorld* world, double x): Actor(world, IID_STAR, x, randInt(0, VIEW_HEIGHT - 1), 0, randInt(1, 10)/20.0, 3){}
 
 Star::~Star(){}
 
@@ -372,8 +372,8 @@ bool Projectile::handleAlienCollisions(){ //damage aliens
     Actor* n = getWorld()->getOneCollidingAlien(this);
     if (n == nullptr)
         return false;
-    //take damage
     setDead();
+    damage(n);
     return true;
 }
 
@@ -396,7 +396,7 @@ bool Cabbage::handleCollisions(){
     return handleAlienCollisions();
 }
 
-void Cabbage::damage(Ship* target){
+void Cabbage::damage(Actor* target){
     target->takeDamage(2);
 }
 
@@ -418,7 +418,7 @@ bool Turnip::handleCollisions(){
     return handlePlayerCollisions();
 }
 
-void Turnip::damage(Ship* target){
+void Turnip::damage(Actor* target){
     target->takeDamage(2);
 }
 
@@ -448,7 +448,7 @@ bool FlatulenceTorpedo::handleCollisions(){
         return handlePlayerCollisions();
 }
 
-void FlatulenceTorpedo::damage(Ship* target){
+void FlatulenceTorpedo::damage(Actor* target){
     target->takeDamage(8);
 }
 
