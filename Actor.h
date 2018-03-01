@@ -17,7 +17,6 @@ public:
     void setDead();
     void setAlien();
     bool isAlien();
-    //virtual void takeDamage(double damage);
     StudentWorld* getWorld();
 private:
     StudentWorld* m_world;
@@ -33,6 +32,8 @@ public:
     virtual ~Ship();
     double getHealth();
     virtual void takeDamage(double damage);
+    void addHealth(double amount);
+    virtual void getKilled() = 0;
 private:
     double m_health;
 };
@@ -46,6 +47,9 @@ public:
     virtual void doSomething();
     int getCabbages();//could become double?
     int getTorpedoes();
+    void repair();
+    void incTorpedoes();
+    virtual void getKilled();
 private:
     int m_cabbages;
     int m_torpedoes;
@@ -57,33 +61,54 @@ class Alien: public Ship{
 public:
     Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction);
     virtual ~Alien();
-    double getFlightPlan(); //necessary?
-    virtual void handleFlightPlan();
+    virtual void doSomething();
+    virtual void handleFlightPlan() = 0;
     void setFlightDirection(int direction);
-    void fly(); //using flight direction
+    virtual void fly() = 0; //using flight direction
     void fireProjectile();
+    int getFlightDirection();
+    double getTravelSpeed();
+    virtual void shoot() = 0;
+    virtual void dropGoodie() = 0;
+    virtual bool handleCollisions();
+    virtual void collideWithPlayer(NachenBlaster* player) = 0;
+    virtual void getKilled();
+    virtual void incScore() = 0;
 private:
     double m_travelSpeed;
-    int m_flightPlan;
     int m_flightDirection; //up: 1, left: 0, down: -1
 };
 
 
 
-class Smallgon: public Alien{
+class PoorAlien: public Alien{
 public:
-    Smallgon(StudentWorld* world, double health, double startX, double startY);
-    virtual ~Smallgon();
-    virtual void doSomething();
+    PoorAlien(StudentWorld* world, int imageID, double health, double startX, double startY);
+    virtual void handleFlightPlan();
+    virtual void fly();
+    virtual void shoot();
+    virtual void collideWithPlayer(NachenBlaster* player);
+    virtual void incScore();
+private:
+    int m_flightPlan;
 };
 
 
 
-class Smoregon: public Alien{
+class Smallgon: public PoorAlien{
+public:
+    Smallgon(StudentWorld* world, double health, double startX, double startY);
+    virtual ~Smallgon();
+    virtual void dropGoodie();
+};
+
+
+
+class Smoregon: public PoorAlien{
 public:
     Smoregon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Smoregon();
-    virtual void doSomething();
+    virtual void dropGoodie();
 };
 
 
@@ -92,8 +117,12 @@ class Snagglegon: public Alien{
 public:
     Snagglegon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Snagglegon();
-    virtual void doSomething();
     virtual void handleFlightPlan();
+    virtual void fly();
+    virtual void shoot();
+    virtual void dropGoodie();
+    virtual void collideWithPlayer(NachenBlaster* player);
+    virtual void incScore();
 };
 
 
@@ -110,10 +139,13 @@ public:
 class Projectile: public Actor{
 public:
     Projectile(StudentWorld* world, int imageID, double startX, double startY, int dir = 0);
+    virtual void doSomething();
+    virtual void fly() = 0;
     virtual ~Projectile();
-protected:
-    void alienCollsion(double damage);
-    void playerCollsion(double damage);
+    virtual bool handlePlayerCollisions();
+    virtual bool handleAlienCollisions(); //calls damage
+    virtual void damage(Ship* target) = 0;
+    virtual bool handleCollisions() = 0; //redirects to player/alien
 };
 
 
@@ -122,7 +154,9 @@ class Cabbage: public Projectile{
 public:
     Cabbage(StudentWorld* world, double startX, double startY);
     virtual ~Cabbage();
-    virtual void doSomething();
+    virtual void fly();
+    virtual bool handleCollisions();
+    virtual void damage(Ship* target);
 };
 
 
@@ -131,7 +165,9 @@ class Turnip: public Projectile{
 public:
     Turnip(StudentWorld* world, double startX, double startY);
     virtual ~Turnip();
-    virtual void doSomething();
+    virtual void fly();
+    virtual void damage(Ship* target);
+    virtual bool handleCollisions();
 };
 
 
@@ -140,7 +176,9 @@ class FlatulenceTorpedo: public Projectile{
 public:
     FlatulenceTorpedo(StudentWorld* world, double startX, double startY, bool fromPlayer);
     virtual ~FlatulenceTorpedo();
-    virtual void doSomething();
+    virtual void fly();
+    virtual bool handleCollisions();
+    virtual void damage(Ship* target);
 private:
     bool m_fromPlayer;
 };
@@ -159,20 +197,37 @@ private:
 
 
 class Goodie: public Actor{
-    Goodie(StudentWorld* world, double startX, double startY);
+public:
+    Goodie(StudentWorld* world, int imageID, double startX, double startY);
+    virtual void doSomething();
+    virtual void notifyPlayer(NachenBlaster* player) = 0;
+    virtual bool handleCollisions();
 };
+
+
 
 class RepairGoodie: public Goodie{
-    
+public:
+    RepairGoodie(StudentWorld* world, double startX, double startY);
+    virtual void notifyPlayer(NachenBlaster* player);
 };
+
+
 
 class ExtraLifeGoodie: public Goodie{
-    
+public:
+    ExtraLifeGoodie(StudentWorld* world, double startX, double startY);
+    virtual void notifyPlayer(NachenBlaster* player);
 };
 
+
+
 class FlatulenceTorpedoGoodie: public Goodie{
-    
+public:
+    FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY);
+    virtual void notifyPlayer(NachenBlaster* player);
 };
+
 
 
 #endif // ACTOR_H_
