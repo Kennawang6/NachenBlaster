@@ -18,14 +18,20 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
-    void fireCabbage();
-    void fireTorpedo(bool playerFired, int startX, int startY);
-    void killedAlien();
+    Actor* getOneCollidingAlien(const Actor* a) const;
+    NachenBlaster* getCollidingPlayer(const Actor* a) const;
+    bool playerInLineOfFire(const Actor* a) const;
+    void addActor(Actor* a);
+    void recordAlienDestroyed();
 private:
     std::list<Actor*> m_actors;
     NachenBlaster* m_player;
     void updateDisplayText();
     int m_aliensLeft;
+    int m_nAliens;
+    void introduceAlien();
 };
+
+double euclideanDistance(double x1, double y1, double x2, double y2);
 
 #endif // STUDENTWORLD_H_
