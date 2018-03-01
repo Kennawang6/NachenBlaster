@@ -35,7 +35,9 @@ int StudentWorld::init()
     m_player = new NachenBlaster(this);
     for (int i = 0; i < 30; i++)
         m_actors.push_back(new Star(this, randInt(0, VIEW_WIDTH)));
+    m_actors.push_back(new RepairGoodie(this, 60, 138));
     return GWSTATUS_CONTINUE_GAME;
+    
 }
 
 int StudentWorld::move(){
@@ -137,7 +139,7 @@ NachenBlaster* StudentWorld::getPlayer(){
 
 void StudentWorld::updateDisplayText(){
     ostringstream stats;
-    stats << "Lives: " << getLives() << " Health: " << m_player->getHealth() << "% Score: " << getScore() << " Level: " << getLevel() << " Cabbages: " << m_player->getCabbages() << "% Torpedoes: " << m_player->getTorpedoes();
+    stats << "Lives: " << getLives() << " Health: " << m_player->getHealth() * 2 << "% Score: " << getScore() << " Level: " << getLevel() << " Cabbages: " << m_player->getCabbages() << "% Torpedoes: " << m_player->getTorpedoes();
     string text = stats.str();
     setGameStatText(text);
 }
