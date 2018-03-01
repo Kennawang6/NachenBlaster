@@ -115,6 +115,10 @@ void StudentWorld::recordAlienDestroyed(){
     m_aliensLeft--;
 }
 
+NachenBlaster* StudentWorld::getPlayer(){
+    return m_player;
+}
+
 void StudentWorld::updateDisplayText(){
     ostringstream stats;
     stats << "Lives: " << getLives() << " Health: " << m_player->getHealth() << "% Score: " << getScore() << " Level: " << getLevel() << " Cabbages: " << m_player->getCabbages() << "% Torpedoes: " << m_player->getTorpedoes();
