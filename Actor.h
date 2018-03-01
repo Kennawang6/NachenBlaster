@@ -14,12 +14,12 @@ public:
     virtual ~Actor();
     virtual void doSomething() = 0;
     bool isAlive();
-    void setDead();
-    void setAlien();
     bool isAlien();
     virtual void takeDamage(double damage);
 protected:
     StudentWorld* getWorld();
+    void setDead();
+    void setAlien();
 private:
     StudentWorld* m_world;
     bool m_isDead;
@@ -33,9 +33,9 @@ public:
     Ship(StudentWorld* world, int imageID, double health, double startX, double startY, int dir, double size, int depth);
     virtual ~Ship();
     double getHealth();
-    virtual void takeDamage(double damage);
-    void addHealth(double amount);
     virtual void getKilled() = 0;
+    virtual void takeDamage(double amount);
+    void addHealth(double amount);
 private:
     double m_health;
 };
@@ -65,20 +65,20 @@ public:
     virtual ~Alien();
     virtual void doSomething();
     virtual void handleFlightPlan() = 0;
-    void setFlightDirection(int direction);
     virtual void fly() = 0; //using flight direction
-    void fireProjectile();
     int getFlightDirection();
-    double getTravelSpeed();
     virtual void shoot() = 0;
     virtual void dropGoodie() = 0;
-    virtual bool handleCollisions();
     virtual void collideWithPlayer(NachenBlaster* player) = 0;
     virtual void getKilled();
     virtual void incScore() = 0;
+protected:
+    void setFlightDirection(int direction);
+    double getTravelSpeed();
 private:
     double m_travelSpeed;
     int m_flightDirection; //up: 1, left: 0, down: -1
+    virtual bool handleCollisions();
 };
 
 
@@ -144,10 +144,11 @@ public:
     virtual void doSomething();
     virtual void fly() = 0;
     virtual ~Projectile();
-    virtual bool handlePlayerCollisions();
-    virtual bool handleAlienCollisions(); //calls damage
     virtual void damage(Actor* target) = 0;
     virtual bool handleCollisions() = 0; //redirects to player/alien
+protected:
+    virtual bool handlePlayerCollisions();
+    virtual bool handleAlienCollisions(); //calls damage
 };
 
 
@@ -203,6 +204,7 @@ public:
     Goodie(StudentWorld* world, int imageID, double startX, double startY);
     virtual void doSomething();
     virtual void notifyPlayer(NachenBlaster* player) = 0;
+protected:
     virtual bool handleCollisions();
 };
 
