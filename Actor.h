@@ -13,23 +13,27 @@ public:
     Actor(StudentWorld* world, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
     virtual ~Actor();
     virtual void doSomething() = 0;
-    virtual bool isAlive() = 0;
+    bool isAlive();
+    void setDead();
+    void setAlien();
+    bool isAlien();
     StudentWorld* getWorld();
 private:
     StudentWorld* m_world;
+    bool m_isDead;
+    bool m_isAlien;
 };
 
 
 
-class Ship: public Actor{ //does ship have any unique stuff?
+class Ship: public Actor{
 public:
-    Ship(StudentWorld* world, int imageID, int health, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
+    Ship(StudentWorld* world, int imageID, double health, double startX, double startY, int dir, double size, int depth);
     virtual ~Ship();
-    virtual bool isAlive() = 0;
-    virtual void doSomething() = 0;
-    int getHealth();
+    double getHealth();
+    void takeDamage(double amount);
 private:
-    int m_health;
+    double m_health;
 };
 
 
@@ -38,7 +42,6 @@ class NachenBlaster: public Ship{
 public:
     NachenBlaster(StudentWorld* world);
     virtual ~NachenBlaster();
-    virtual bool isAlive();
     virtual void doSomething();
     int getCabbages();//could become double?
     int getTorpedoes();
@@ -51,49 +54,46 @@ private:
 
 class Alien: public Ship{
 public:
-    Alien(StudentWorld* world, int imageID, int health, double startX, double startY, int dir = 0, double speed = 2.0);
+    Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed);
     virtual ~Alien();
-    virtual bool isAlive() = 0;
-    virtual void doSomething() = 0;
 private:
     double m_travelSpeed;
+    int m_flightPlan;
 };
 
 
-//may need regrouping to combine smoregon and smallgon?
+
 class Smallgon: public Alien{
 public:
-    Smallgon(StudentWorld* world);
+    Smallgon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Smallgon();
-private:
-    int m_flightPlan;
+    virtual void doSomething();
 };
 
 
 
 class Smoregon: public Alien{
 public:
-    Smoregon(StudentWorld* world);
+    Smoregon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Smoregon();
-private:
-    int m_flightPlan;
+    virtual void doSomething();
 };
 
 
 
 class Snagglegon: public Alien{
 public:
-    Snagglegon(StudentWorld* world);
+    Snagglegon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Snagglegon();
+    virtual void doSomething();
 };
 
 
 
 class Star: public Actor{
 public:
-    Star(StudentWorld* world, int x = VIEW_WIDTH); //use no parameters during tick, use randInt during init
+    Star(StudentWorld* world, double x = VIEW_WIDTH); //use no parameters during tick, use randInt during init
     virtual ~Star();
-    virtual bool isAlive();
     virtual void doSomething();
 };
 
@@ -101,39 +101,36 @@ public:
 
 class Projectile: public Actor{
 public:
-    Projectile(StudentWorld* world, int imageID, int startX, int startY, int dir = 0);
+    Projectile(StudentWorld* world, int imageID, double startX, double startY, int dir = 0);
     virtual ~Projectile();
-    virtual void doSomething() = 0;
-    virtual bool isAlive() = 0;
+protected:
+    void handleCollsion(int damage);
 };
 
 
 
 class Cabbage: public Projectile{
 public:
-    Cabbage(StudentWorld* world, int startX, int startY);
+    Cabbage(StudentWorld* world, double startX, double startY);
     virtual ~Cabbage();
     virtual void doSomething();
-    virtual bool isAlive();
 };
 
 
 
 class Turnip: public Projectile{
 public:
-    Turnip(StudentWorld* world, int startX, int startY);
+    Turnip(StudentWorld* world, double startX, double startY);
     virtual ~Turnip();
     virtual void doSomething();
-    virtual bool isAlive();
 };
 
 
 
 class FlatulenceTorpedo: public Projectile{
 public:
-    FlatulenceTorpedo(StudentWorld* world, int startX, int startY, bool fromPlayer);
+    FlatulenceTorpedo(StudentWorld* world, double startX, double startY, bool fromPlayer);
     virtual ~FlatulenceTorpedo();
-    virtual bool isAlive();
     virtual void doSomething();
 private:
     bool m_fromPlayer;
@@ -146,13 +143,14 @@ public:
     Explosion(StudentWorld* world, double startX, double startY);
     virtual ~Explosion();
     virtual void doSomething();
-    virtual bool isAlive();
+private:
+    int m_ticks;
 };
 
 
 
 class Goodie: public Actor{
-    
+    Goodie(StudentWorld* world, double startX, double startY);
 };
 
 class RepairGoodie: public Goodie{
