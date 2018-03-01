@@ -17,6 +17,7 @@ public:
     void setDead();
     void setAlien();
     bool isAlien();
+    //virtual void takeDamage(double damage);
     StudentWorld* getWorld();
 private:
     StudentWorld* m_world;
@@ -31,7 +32,7 @@ public:
     Ship(StudentWorld* world, int imageID, double health, double startX, double startY, int dir, double size, int depth);
     virtual ~Ship();
     double getHealth();
-    void takeDamage(double amount);
+    virtual void takeDamage(double damage);
 private:
     double m_health;
 };
@@ -54,11 +55,17 @@ private:
 
 class Alien: public Ship{
 public:
-    Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed);
+    Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction);
     virtual ~Alien();
+    double getFlightPlan(); //necessary?
+    virtual void handleFlightPlan();
+    void setFlightDirection(int direction);
+    void fly(); //using flight direction
+    void fireProjectile();
 private:
     double m_travelSpeed;
     int m_flightPlan;
+    int m_flightDirection; //up: 1, left: 0, down: -1
 };
 
 
@@ -86,6 +93,7 @@ public:
     Snagglegon(StudentWorld* world, double health, double startX, double startY);
     virtual ~Snagglegon();
     virtual void doSomething();
+    virtual void handleFlightPlan();
 };
 
 
@@ -104,7 +112,8 @@ public:
     Projectile(StudentWorld* world, int imageID, double startX, double startY, int dir = 0);
     virtual ~Projectile();
 protected:
-    void handleCollsion(int damage);
+    void alienCollsion(double damage);
+    void playerCollsion(double damage);
 };
 
 
