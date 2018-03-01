@@ -23,6 +23,7 @@ public:
     bool playerInLineOfFire(const Actor* a) const;
     void addActor(Actor* a);
     void recordAlienDestroyed();
+    NachenBlaster* getPlayer();
 private:
     std::list<Actor*> m_actors;
     NachenBlaster* m_player;
