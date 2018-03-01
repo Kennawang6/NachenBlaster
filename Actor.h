@@ -17,8 +17,9 @@ public:
     void setDead();
     void setAlien();
     bool isAlien();
-    StudentWorld* getWorld();
     virtual void takeDamage(double damage);
+protected:
+    StudentWorld* getWorld();
 private:
     StudentWorld* m_world;
     bool m_isDead;
