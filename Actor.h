@@ -47,7 +47,7 @@ public:
     NachenBlaster(StudentWorld* world);
     virtual ~NachenBlaster();
     virtual void doSomething();
-    int getCabbages();//could become double?
+    int getCabbages();
     int getTorpedoes();
     void repair();
     void incTorpedoes();
