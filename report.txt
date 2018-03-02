@@ -1,7 +1,385 @@
-1.
+———————————————————————————————————
+Public member function descriptions
+———————————————————————————————————
 
-2.
+A high-level description of each of your public member functions in each of your classes, and why you chose to define each member function in its host class; also explain why (or why not) you decided to make each function virtual or pure virtual.
 
-3.
+===StudentWorld===
+StudentWorld(std::string assetDir); 
+	* constructor
+	* creates base object GameWorld, initializes m_player to nullptr so if the player quits before the program ends, the destructor doesn’t try to delete an uninitialized pointer
+	* not virtual because it’s only used for this class
 
-4.
+virtual ~StudentWorld();
+	* destructor
+	* deletes all Actors in the m_actors container, deletes m_player
+	* virtual because destructors ///////////////
+
+virtual int init();
+	* initializes m_aliensLeft, which counts how many aliens left the player has to kill
+	* initializes m_nAliens, which counts amount of aliens in the m_player array
+	* inserts 30 star objects into m_actors list passed with a random x
+	* virtual because the base class GameWorld contains pure virtual version of this function
+
+virtual int move();
+	* Pseudocode:
+		tells player to do something
+		calls introduceAlien() to possibly add a new alien into the world
+		iterates through all Actors in m_actors, 
+			asks them to do something if they’re still alive, 
+			removes them if they aren’t
+		returns if player dies or player completes the level (kills enough aliens) 
+		iterates through m_actors again and removes dead objects
+		may introduce new star
+		updates display text
+		continues game
+	* virtual because the base class GameWorld contains pure virtual version of this function
+
+virtual void cleanUp();
+	* deletes m_player and sets the pointer to nullptr in case the destructor is called
+	* deletes all actors in m_actors
+	* virtual because the base class GameWorld contains pure virtual version of this function
+
+Actor* getOneCollidingAlien(const Actor* a) const;
+	* part of StudentWorld as it iterates through private member m_actors
+	* iterates through m_actors and calls euclideanDistance helper function to return an actor if a collides with the actor, returns nullptr if there is no collision
+	* not virtual because no other class uses this function
+
+NachenBlaster* getCollidingPlayer(const Actor* a) const;
+	* calls euclideanDistance helper function to return an actor if a collides with the actor, returns nullptr if there is no collision
+	* part of StudentWorld because it handles StudentWorld private member m_player
+	* not virtual as there is no other implementation of this function
+
+bool playerInLineOfFire(const Actor* a) const;
+	* returns true if player’s y coordinate is [-4,4] from a’s y coordinate, and player’s x coordinate is less than a’s y coordinate
+
+void addActor(Actor* a);
+	* pushes a onto m_actors
+	* included in StudentWorld because it directly interacts with StudentWorld’s member m_actors
+	* not virtual because function only works with StudentWorld, not base class
+
+void recordAlienDestroyed();
+	* decrements m_aliensLeft, called when player kills an alien
+	* interface member for StudentWorld
+
+NachenBlaster* getPlayer();
+	* returns m_player
+	* interface member function
+
+
+
+===Actor===
+Actor(StudentWorld* world, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
+	* constructor, stares StudentWorld pointer and constructs GameObject base class with remaining parameters
+	* can’t be virtual
+
+virtual ~Actor();
+	* has to be virtual
+	* it doesn’t do anything
+
+virtual void doSomething() = 0;
+	* pure virtual because all derived classes will execute this function differently during move()
+
+bool isAlive();
+	* accessor function for private m_isDead
+
+bool isAlien();
+	* accessor function for private m_isAlien
+
+virtual void takeDamage(double damage);
+	* virtual function that does nothing so that derived classes may call takeDamage through an Actor pointer
+
+
+
+===Ship===
+Ship(StudentWorld* world, int imageID, double health, double startX, double startY, int dir, double size, int depth);
+	* constructor creates Actor base, initializes m_health member variable
+	* can’t be virtual
+
+virtual ~Ship();
+	* virtual destructor
+
+double getHealth();
+	* accessor for private m_health
+
+virtual void getKilled() = 0;
+	* pure virtual so that derived classes may die and play own animations, sounds, and modify data
+
+virtual void takeDamage(double amount);
+	* virtual differs from Actor’s implementation
+	* subtract amount from health
+
+void addHealth(double amount);
+	* mutator function adds amount to health
+
+
+
+===NachenBlaster===
+NachenBlaster(StudentWorld* world);
+	* constructs Nachenblaster object with correct x, y , depth, hp, cabbages, torpedoes, direction, depth, image ID, StudentWorld object
+
+virtual ~NachenBlaster();
+	* destructor
+
+virtual void doSomething();
+	* pseudocode:
+		returns if player is dead
+		processes player input
+			up/down/left/right: moves in that direction if movement won’t push player off screen
+			space: summons cabbage, decreases m_cabbages by 5
+			tab: summons torpedo, decreases m_torpedoes by 1
+		increases m_cabbages by 1
+		sets player to dead if health <= 0				
+
+int getCabbages();
+	* returns cabbage%
+
+int getTorpedoes();
+	* returns m_torpedoes
+
+void repair();
+	* adds 10 health points for up to 50 points
+
+void incTorpedoes();
+	* adds 5 torpedoes
+
+virtual void getKilled();
+	* sets status to dead, decreases lives left for game
+
+
+
+===Alien===
+Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction);
+	* constructor
+
+virtual ~Alien();
+	* destructor
+
+virtual void doSomething();
+	* pseudocode
+		returns if alien is dead
+		sets alien to dead if it flies off the screen
+		calls handleCollisions() to handle the collisions
+		calls playerInLineOfFire(this), calls shoot() if player is ahead of the alien
+		calls fly() to move in the appropriate direction
+		handles collisions again
+
+virtual void handleFlightPlan() = 0;
+
+virtual void fly() = 0; //using flight direction
+
+int getFlightDirection();
+	* accessor to m_flightDirection
+
+virtual void shoot() = 0;
+
+virtual void dropGoodie() = 0;
+
+virtual void collideWithPlayer(NachenBlaster* player) = 0;
+
+virtual void getKilled();
+	* sets state to dead and decreases amount o lives
+
+virtual void incScore() = 0;
+
+
+
+===PoorAlien===
+PoorAlien(StudentWorld* world, int imageID, double health, double startX, double startY);
+	* constructor
+
+virtual void handleFlightPlan();
+	* changes flight plan direction if alien reaches the edge of the screen or if the current plan ends, with random flight plan length
+
+virtual void fly();
+	* moves travelSpeed in the direction of flight plan, decreases m_flightPlan by one
+
+virtual void shoot();
+	* calculates odds of alien shooting, and if the alien decides to shoot, summons a new Turnip object
+
+virtual void collideWithPlayer(NachenBlaster* player);
+	* tells player to take 5 pts of damage
+
+virtual void incScore();
+	* increases game score by 250 points
+
+
+
+===Smallgon===
+Smallgon(StudentWorld* world, double health, double startX, double startY);
+	* constructor
+
+virtual ~Smallgon();
+	* destructor
+
+virtual void dropGoodie();
+	* does nothing, smallgon doesn’t drop anything
+
+
+
+===Smoregon===
+Smoregon(StudentWorld* world, double health, double startX, double startY);
+	* constructor
+
+virtual ~Smoregon();
+	* destructor
+
+virtual void dropGoodie();
+	* 1 in 3 chance to drop a goodie, 50% chance summons new RepairGoodie, otherwise ExtraLifeGoodie
+
+
+
+===Snagglegon===
+Snagglegon(StudentWorld* world, double health, double startX, double startY);
+	* constructor
+
+virtual ~Snagglegon();
+	* destructor
+
+virtual void handleFlightPlan();
+	* if snagglegon is on the edge of the screen, changes flight plan direction to move in opposite direction
+
+virtual void fly();
+	* calls moveTo to move m_travelSpeed in m_flightDirection
+
+virtual void shoot();
+	* calculates odds of shooting, if Snagglegon decides to shoot, summons torpedo
+
+virtual void dropGoodie();
+	* 1 in 6 chance, summons FlatulenceTorpedoGoodie
+
+virtual void collideWithPlayer(NachenBlaster* player);
+	* tells player to take 15 points of damage
+
+virtual void incScore();
+	* increases game score by 1000
+
+
+
+===Star===
+Star(StudentWorld* world, double x = VIEW_WIDTH - 1); 
+	* constructor
+
+virtual ~Star();
+	* destructor
+
+virtual void doSomething();
+	* moves left one pixel, sets state to dead if it moves off the screen
+
+
+
+===Projectile===
+Projectile(StudentWorld* world, int imageID, double startX, double startY, int dir = 0);
+	* constructor
+
+virtual void doSomething();
+	* returns if dead, sets dead if it flies off the screen, calls handleCollisions(), calls fly(), calls handleCollisions() again
+
+virtual void fly() = 0;
+virtual ~Projectile();
+	* destructor
+
+virtual void damage(Actor* target) = 0;
+virtual bool handleCollisions() = 0;
+
+
+
+===Cabbage===
+Cabbage(StudentWorld* world, double startX, double startY);
+	* constructor, plays shooting sound
+
+virtual ~Cabbage();
+	* destructor
+
+virtual void fly();
+	* moves right 8 pixels, rotates 20 degrees
+
+virtual bool handleCollisions();
+	* calls handleAlienCollisions()
+
+virtual void damage(Actor* target);
+	* tells actor to take 2 pts of damage
+
+
+
+===Turnip===
+Turnip(StudentWorld* world, double startX, double startY);
+	* constructor, plays shooting sound
+
+virtual ~Turnip();
+	* destructor
+
+virtual void fly();
+	* moves 6 pixels left, rotates 20 degrees
+
+virtual void damage(Actor* target);
+	* tells actor to take 2 pts of damage
+
+virtual bool handleCollisions();
+	* calls handlePlayerCollisions();
+
+
+
+===FlatulenceTorpedo===
+FlatulenceTorpedo(StudentWorld* world, double startX, double startY, bool fromPlayer);
+	* constructor, plays torpedo sound
+
+virtual ~FlatulenceTorpedo();
+	* destructor
+
+virtual void fly();
+	* 
+virtual bool handleCollisions();
+virtual void damage(Actor* target);
+
+
+
+Explosion: 
+Explosion(StudentWorld* world, double startX, double startY);
+virtual ~Explosion();
+virtual void doSomething();
+
+
+
+Goodie: 
+Goodie(StudentWorld* world, int imageID, double startX, double startY);
+virtual void doSomething();
+virtual void notifyPlayer(NachenBlaster* player) = 0;
+
+
+
+RepairGoodie:
+RepairGoodie(StudentWorld* world, double startX, double startY);
+virtual void notifyPlayer(NachenBlaster* player);
+
+
+
+ExtraLifeGoodie:
+ExtraLifeGoodie(StudentWorld* world, double startX, double startY);
+virtual void notifyPlayer(NachenBlaster* player);
+
+
+
+FlatulenceTorpedoGoodie:
+FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY);
+virtual void notifyPlayer(NachenBlaster* player);
+
+
+
+———————————————
+Missed features
+———————————————
+None!
+
+————————————————
+Assumptions made
+————————————————
+Collisions
+
+———————
+Testing
+———————
+Collisions:
+
+Projectiles:
+
