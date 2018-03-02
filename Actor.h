@@ -202,6 +202,7 @@ private:
 class Goodie: public Actor{
 public:
     Goodie(StudentWorld* world, int imageID, double startX, double startY);
+    virtual ~Goodie();
     virtual void doSomething();
     virtual void notifyPlayer(NachenBlaster* player) = 0;
 protected:
@@ -213,6 +214,7 @@ protected:
 class RepairGoodie: public Goodie{
 public:
     RepairGoodie(StudentWorld* world, double startX, double startY);
+    virtual ~RepairGoodie();
     virtual void notifyPlayer(NachenBlaster* player);
 };
 
@@ -221,6 +223,7 @@ public:
 class ExtraLifeGoodie: public Goodie{
 public:
     ExtraLifeGoodie(StudentWorld* world, double startX, double startY);
+    virtual ~ExtraLifeGoodie();
     virtual void notifyPlayer(NachenBlaster* player);
 };
 
@@ -229,6 +232,7 @@ public:
 class FlatulenceTorpedoGoodie: public Goodie{
 public:
     FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY);
+    virtual ~FlatulenceTorpedoGoodie();
     virtual void notifyPlayer(NachenBlaster* player);
 };
 
