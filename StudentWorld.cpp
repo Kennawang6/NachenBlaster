@@ -35,7 +35,6 @@ int StudentWorld::init()
     m_player = new NachenBlaster(this);
     for (int i = 0; i < 30; i++)
         m_actors.push_back(new Star(this, randInt(0, VIEW_WIDTH)));
-    m_actors.push_back(new RepairGoodie(this, 60, 138));
     return GWSTATUS_CONTINUE_GAME;
     
 }
@@ -64,8 +63,10 @@ int StudentWorld::move(){
         if (!m_player->isAlive())
             return GWSTATUS_PLAYER_DIED;
         obj++;
-        if (m_aliensLeft <= 0)
+        if (m_aliensLeft <= 0){
+            playSound(SOUND_FINISHED_LEVEL);
             return GWSTATUS_FINISHED_LEVEL;
+        }
     }
     
     obj = m_actors.begin();
