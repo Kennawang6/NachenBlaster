@@ -474,6 +474,8 @@ void Explosion::doSomething(){
 //////////
 Goodie::Goodie(StudentWorld* world, int imageID, double startX, double startY): Actor(world, imageID, startX, startY, 0, 0.5, 1){}
 
+Goodie::~Goodie(){}
+
 void Goodie::doSomething(){
     if (!isAlive())
         return;
@@ -501,6 +503,8 @@ bool Goodie::handleCollisions(){
 ////////////////
 RepairGoodie::RepairGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_REPAIR_GOODIE, startX, startY){}
 
+RepairGoodie::~RepairGoodie(){}
+
 void RepairGoodie::notifyPlayer(NachenBlaster* player){
     player->repair();
 }
@@ -512,6 +516,8 @@ void RepairGoodie::notifyPlayer(NachenBlaster* player){
 ///////////////////
 ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_LIFE_GOODIE, startX, startY){}
 
+ExtraLifeGoodie::~ExtraLifeGoodie(){}
+
 void ExtraLifeGoodie::notifyPlayer(NachenBlaster* player){
     getWorld()->incLives();
 }
@@ -522,6 +528,8 @@ void ExtraLifeGoodie::notifyPlayer(NachenBlaster* player){
 //FlatulenceTorpedoGoodie//
 ///////////////////////////
 FlatulenceTorpedoGoodie::FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY): Goodie(world, IID_TORPEDO_GOODIE, startX, startY){}
+
+FlatulenceTorpedoGoodie::~FlatulenceTorpedoGoodie(){}
 
 void FlatulenceTorpedoGoodie::notifyPlayer(NachenBlaster* player){
     player->incTorpedoes();
