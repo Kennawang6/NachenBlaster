@@ -96,16 +96,12 @@ void NachenBlaster::doSomething(){
             case KEY_PRESS_SPACE:
                 if (m_cabbages >= 5){
                     getWorld()->addActor(new Cabbage(getWorld(), getX() + 12, getY()));
-                    getWorld()->playSound(SOUND_PLAYER_SHOOT);
                     m_cabbages -= 5;
                 }
-                break;
-            case KEY_PRESS_ESCAPE:
                 break;
             case KEY_PRESS_TAB:
                 if (m_torpedoes > 0){
                     getWorld()->addActor(new FlatulenceTorpedo(getWorld(), getX() + 12, getY(), true));
-                    getWorld()->playSound(SOUND_TORPEDO);
                     m_torpedoes--;
                 }
                 break;
@@ -138,7 +134,6 @@ void NachenBlaster::incTorpedoes(){
 
 void NachenBlaster::getKilled(){
     setDead();
-    getWorld()->playSound(SOUND_DEATH);
     getWorld()->decLives();
 }
 
@@ -236,7 +231,6 @@ void PoorAlien::fly(){
 void PoorAlien::shoot(){
     if (randInt(1, 20 / getWorld()->getLevel() + 5) == 1){
         getWorld()->addActor(new Turnip(getWorld(), getX() - 14, getY()));
-        getWorld()->playSound(SOUND_ALIEN_SHOOT);
     }
 }
 
@@ -303,7 +297,6 @@ void Snagglegon::fly(){
 void Snagglegon::shoot(){
     if (randInt(1, (15 / getWorld()->getLevel())+10) == 1){
         getWorld()->addActor(new FlatulenceTorpedo(getWorld(), getX() - 14, getY(), false));
-        getWorld()->playSound(SOUND_TORPEDO);
     }
 }
 
@@ -331,6 +324,8 @@ Star::~Star(){}
 
 void Star::doSomething(){
     moveTo(getX() - 1, getY());
+    if (getX() <= 0)
+        setDead();
 }
 
 
@@ -345,7 +340,7 @@ Projectile::~Projectile(){}
 void Projectile::doSomething(){
     if (!isAlive())
         return;
-    if (getX() < 0){
+    if (getX() < 0 || getX() >= VIEW_WIDTH){
         setDead();
         return;
     }
@@ -360,6 +355,7 @@ bool Projectile::handlePlayerCollisions(){
     if (n == nullptr)
         return false;
     setDead();
+    getWorld()->playSound(SOUND_BLAST);
     damage(n);
     return true;
 }
@@ -379,7 +375,9 @@ bool Projectile::handleAlienCollisions(){ //damage aliens
 ///////////
 //Cabbage//
 ///////////
-Cabbage::Cabbage(StudentWorld* world, double startX, double startY): Projectile(world, IID_CABBAGE, startX, startY){}
+Cabbage::Cabbage(StudentWorld* world, double startX, double startY): Projectile(world, IID_CABBAGE, startX, startY){
+    world->playSound(SOUND_PLAYER_SHOOT);
+}
 
 Cabbage::~Cabbage(){}
 
@@ -401,7 +399,9 @@ void Cabbage::damage(Actor* target){
 //////////
 //Turnip//
 //////////
-Turnip::Turnip(StudentWorld* world, double startX, double startY): Projectile(world, IID_TURNIP, startX, startY){}
+Turnip::Turnip(StudentWorld* world, double startX, double startY): Projectile(world, IID_TURNIP, startX, startY){
+    world->playSound(SOUND_ALIEN_SHOOT);
+}
 
 Turnip::~Turnip(){}
 
@@ -426,6 +426,7 @@ void Turnip::damage(Actor* target){
 FlatulenceTorpedo::FlatulenceTorpedo(StudentWorld* world, double startX, double startY, bool fromPlayer): Projectile(world, IID_TORPEDO, startX, startY, 180), m_fromPlayer(fromPlayer){
     if (fromPlayer)
         setDirection(0);
+    world->playSound(SOUND_TORPEDO);
 }
 
 FlatulenceTorpedo::~FlatulenceTorpedo(){}
