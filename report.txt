@@ -8,12 +8,12 @@ A high-level description of each of your public member functions in each of your
 StudentWorld(std::string assetDir); 
 	* constructor
 	* creates base object GameWorld, initializes m_player to nullptr so if the player quits before the program ends, the destructor doesn’t try to delete an uninitialized pointer
-	* not virtual because it’s only used for this class
+	* constructors are not virtual
 
 virtual ~StudentWorld();
 	* destructor
 	* deletes all Actors in the m_actors container, deletes m_player
-	* virtual because destructors ///////////////
+	* destructors are virtual
 
 virtual int init();
 	* initializes m_aliensLeft, which counts how many aliens left the player has to kill
@@ -61,46 +61,52 @@ void addActor(Actor* a);
 void recordAlienDestroyed();
 	* decrements m_aliensLeft, called when player kills an alien
 	* interface member for StudentWorld
+	* not virtual as there is no other implementation of this function
 
 NachenBlaster* getPlayer();
 	* returns m_player
-	* interface member function
+	* not virtual, accessor function
 
 
 
 ===Actor===
 Actor(StudentWorld* world, int imageID, double startX, double startY, int dir = 0, double size = 1.0, int depth = 0);
 	* constructor, stares StudentWorld pointer and constructs GameObject base class with remaining parameters
-	* can’t be virtual
+	* constructors are not virtual
 
 virtual ~Actor();
-	* has to be virtual
-	* it doesn’t do anything
+	* destructor
+	* destructors are virtual
 
 virtual void doSomething() = 0;
 	* pure virtual because all derived classes will execute this function differently during move()
 
 bool isAlive();
-	* accessor function for private m_isDead
+	* returns opposite of m_isDead
+	* not virtual, accessor function
 
 bool isAlien();
-	* accessor function for private m_isAlien
+	* returns m_isAlien
+	* not virtual, accessor function
 
 virtual void takeDamage(double damage);
 	* virtual function that does nothing so that derived classes may call takeDamage through an Actor pointer
+	* not pure virtual because not all derived functions will have this function
 
 
 
 ===Ship===
 Ship(StudentWorld* world, int imageID, double health, double startX, double startY, int dir, double size, int depth);
 	* constructor creates Actor base, initializes m_health member variable
-	* can’t be virtual
+	* constructors are not virtual
 
 virtual ~Ship();
-	* virtual destructor
+	* destructor
+	* destructors are virtual
 
 double getHealth();
 	* accessor for private m_health
+	* not virtual, accessor function
 
 virtual void getKilled() = 0;
 	* pure virtual so that derived classes may die and play own animations, sounds, and modify data
@@ -117,9 +123,11 @@ void addHealth(double amount);
 ===NachenBlaster===
 NachenBlaster(StudentWorld* world);
 	* constructs Nachenblaster object with correct x, y , depth, hp, cabbages, torpedoes, direction, depth, image ID, StudentWorld object
+	* constructors are not virtual
 
 virtual ~NachenBlaster();
 	* destructor
+	* destructors are virtual
 
 virtual void doSomething();
 	* pseudocode:
@@ -133,9 +141,11 @@ virtual void doSomething();
 
 int getCabbages();
 	* returns cabbage%
+	* not virtual, accessor function
 
 int getTorpedoes();
 	* returns m_torpedoes
+	* not virtual, accessor function
 
 void repair();
 	* adds 10 health points for up to 50 points
@@ -151,9 +161,11 @@ virtual void getKilled();
 ===Alien===
 Alien(StudentWorld* world, int imageID, double health, double startX, double startY, double speed, int direction);
 	* constructor
+	* constructors are not virtual
 
 virtual ~Alien();
 	* destructor
+	* destructors are virtual
 
 virtual void doSomething();
 	* pseudocode
@@ -165,28 +177,34 @@ virtual void doSomething();
 		handles collisions again
 
 virtual void handleFlightPlan() = 0;
+	* pure virtual, all aliens follow a flight plan
 
-virtual void fly() = 0; //using flight direction
+virtual void fly() = 0;
+	* pure virtual, all aliens fly
 
 int getFlightDirection();
 	* accessor to m_flightDirection
+	* not virtual, accessor function
 
 virtual void shoot() = 0;
+	* pure virtual, all aliens shoot
 
 virtual void dropGoodie() = 0;
+	* pure virtual, aliens drop goodies differently 
 
 virtual void collideWithPlayer(NachenBlaster* player) = 0;
+	* pure virtual, aliens damage player differently on collision
 
 virtual void getKilled();
-	* sets state to dead and decreases amount o lives
-
-virtual void incScore() = 0;
+	* sets state to dead and decreases amount of lives
+	* not pure virtual because all aliens die the same way
 
 
 
 ===PoorAlien===
 PoorAlien(StudentWorld* world, int imageID, double health, double startX, double startY);
 	* constructor
+	* constructors are not virtual
 
 virtual void handleFlightPlan();
 	* changes flight plan direction if alien reaches the edge of the screen or if the current plan ends, with random flight plan length
@@ -208,9 +226,11 @@ virtual void incScore();
 ===Smallgon===
 Smallgon(StudentWorld* world, double health, double startX, double startY);
 	* constructor
+	* constructors are not virtual
 
 virtual ~Smallgon();
 	* destructor
+	* destructors are virtual
 
 virtual void dropGoodie();
 	* does nothing, smallgon doesn’t drop anything
@@ -220,9 +240,11 @@ virtual void dropGoodie();
 ===Smoregon===
 Smoregon(StudentWorld* world, double health, double startX, double startY);
 	* constructor
+	* constructors are not virtual
 
 virtual ~Smoregon();
 	* destructor
+	* destructors are virtual
 
 virtual void dropGoodie();
 	* 1 in 3 chance to drop a goodie, 50% chance summons new RepairGoodie, otherwise ExtraLifeGoodie
@@ -232,9 +254,11 @@ virtual void dropGoodie();
 ===Snagglegon===
 Snagglegon(StudentWorld* world, double health, double startX, double startY);
 	* constructor
+	* constructors are not virtual
 
 virtual ~Snagglegon();
 	* destructor
+	* destructors are virtual
 
 virtual void handleFlightPlan();
 	* if snagglegon is on the edge of the screen, changes flight plan direction to move in opposite direction
@@ -259,9 +283,11 @@ virtual void incScore();
 ===Star===
 Star(StudentWorld* world, double x = VIEW_WIDTH - 1); 
 	* constructor
+	* constructors are not virtual
 
 virtual ~Star();
 	* destructor
+	* destructors are virtual
 
 virtual void doSomething();
 	* moves left one pixel, sets state to dead if it moves off the screen
@@ -271,25 +297,34 @@ virtual void doSomething();
 ===Projectile===
 Projectile(StudentWorld* world, int imageID, double startX, double startY, int dir = 0);
 	* constructor
+	* constructors are not virtual
 
 virtual void doSomething();
 	* returns if dead, sets dead if it flies off the screen, calls handleCollisions(), calls fly(), calls handleCollisions() again
 
 virtual void fly() = 0;
+	* pure virtual, derived projectiles fly differently
+
 virtual ~Projectile();
 	* destructor
+	* destructors are virtual
 
 virtual void damage(Actor* target) = 0;
+	* pure virtual, derived projectiles damage other actors differently
+
 virtual bool handleCollisions() = 0;
+	* pure virtual, derived projectiles handle collisions differently
 
 
 
 ===Cabbage===
 Cabbage(StudentWorld* world, double startX, double startY);
 	* constructor, plays shooting sound
+	* constructors are not virtual
 
 virtual ~Cabbage();
 	* destructor
+	* destructors are virtual
 
 virtual void fly();
 	* moves right 8 pixels, rotates 20 degrees
@@ -305,9 +340,11 @@ virtual void damage(Actor* target);
 ===Turnip===
 Turnip(StudentWorld* world, double startX, double startY);
 	* constructor, plays shooting sound
+	* constructors are not virtual
 
 virtual ~Turnip();
 	* destructor
+	* destructors are virtual
 
 virtual void fly();
 	* moves 6 pixels left, rotates 20 degrees
@@ -323,46 +360,92 @@ virtual bool handleCollisions();
 ===FlatulenceTorpedo===
 FlatulenceTorpedo(StudentWorld* world, double startX, double startY, bool fromPlayer);
 	* constructor, plays torpedo sound
+	* constructors are not virtual
 
 virtual ~FlatulenceTorpedo();
 	* destructor
+	* destructors are virtual
 
 virtual void fly();
-	* 
+	* player torpedoes move 8 right, alien torpedoes move 8 left
+
 virtual bool handleCollisions();
+	* player torpedoes call handleAlienCollisions(), alien torpedoes call handlePlayerCollisions()
+
 virtual void damage(Actor* target);
+	* tells target to take 8 pts of damage
 
 
 
-Explosion: 
+===Explosion===
 Explosion(StudentWorld* world, double startX, double startY);
+	* constructor, plays blast sound
+	* constructors are not virtual
+
 virtual ~Explosion();
+	* destructor
+	* destructors are virtual
+
 virtual void doSomething();
+	* increases size by 1.5, sets state to dead after 4 ticks
 
 
 
-Goodie: 
+===Goodie===
 Goodie(StudentWorld* world, int imageID, double startX, double startY);
+	* constructor
+	* constructors are not virtual
+
+virtual ~Goodie();
+	* destructor
+
 virtual void doSomething();
+	* returns if dead, calls handleCollisions(), moves down and left .75, calls handleCollisions() again
+
 virtual void notifyPlayer(NachenBlaster* player) = 0;
+	* pure virtual, derived goodies tell player to do different things
 
 
 
-RepairGoodie:
+===RepairGoodie===
 RepairGoodie(StudentWorld* world, double startX, double startY);
+	* constructor
+	* constructors are not virtual
+
+virtual ~RepairGoodie();
+	* destructor
+	* destructors are virtual
+
 virtual void notifyPlayer(NachenBlaster* player);
+	* tells player to call the repair function
 
 
 
-ExtraLifeGoodie:
+===ExtraLifeGoodie===
 ExtraLifeGoodie(StudentWorld* world, double startX, double startY);
+	* constructor
+	* constructors are not virtual
+
+virtual ~ExtraLifeGoodie();
+	* destructor
+	* destructors are virtual
+
 virtual void notifyPlayer(NachenBlaster* player);
+	* increases world’s number of lives by 1
 
 
 
-FlatulenceTorpedoGoodie:
+===FlatulenceTorpedoGoodie===
 FlatulenceTorpedoGoodie(StudentWorld* world, double startX, double startY);
+	* constructor
+	* constructors are not virtual
+
+virtual ~FlatulenceTorpedoGoodie();
+	* destructor
+	* destructors are virtual
+
 virtual void notifyPlayer(NachenBlaster* player);
+	* tells player to increase torpedoes by 5
 
 
 
@@ -374,12 +457,50 @@ None!
 ————————————————
 Assumptions made
 ————————————————
-Collisions
+Spec said that when an actor ran off the screen or took too much damage, to notify StudentWorld to destroy it, but instead, I made the actor’s boolean member variable go to its dead state and had StudentWorld destroy all dead objects during the move() routine
+
+In every collision, one object ends up dead, while the other is affected. I had the killed one process the collisions. It would notify the other object to take damage, or in the case of goodies, increase the value of its member variables. The killed variable would then set its state to dead.
 
 ———————
 Testing
 ———————
-Collisions:
+All tests conducted in-game.
+===NachenBlaster===
+I tested construction by observing the state of the ship at the start of each level. It was created in position (50, 128), was facing right, had 100% health, 100% cabbage, and 0 torpedoes.
+To test the cabbage-shooting functionality, I shot cabbages by pressing the space bar. They appeared to the right of the NachenBlaster, played the shooting sound, and reduced the cabbage energy. The cabbage energy dipped but quickly regenerated.
+To test the torpedo shooting, I temporarily modified code to construct NachenBlaster with a m_torpedoes of 10 (bc I’m not good enough at the game to get them on my own), then shot them by pressing tab. The torpedoes appeared to the right of the NachenBlaster, played the torpedo sound, and decreased m_torpedoes.
+To test the movement, I had to comment out the code that spawned in new aliens so I could move around without distraction. I moved the NachenBlaster with the arrow keys, up to each screen border.
+To test collisions, I let the NachenBlaster get hit by different objects. I moved in front of other aliens so that they would shoot.  I also rammed the NachenBlaster into other alien ships. They disappeared and played the blast sound. I spawned in goodies and moved to them.  They disappeared on collision and played the goodie sound.
 
-Projectiles:
+===Smallgon===
+Smallgons are created and placed randomly along the right edge of the screen. They then move randomly up-left, left and down-left. If the Smallgon reaches the top or bottom of the screen it changes direction to move back to the middle. If the Smallgon is directly to the left of the NachenBlaster, it may fire a turnip. If the smallgon collides with the player, it dies and deals 5 points of damage to the player. If the Smallgon dies, it rewards 250 points to the player.
 
+===Smoregon===
+Smoregons are created and placed randomly along the right edge of the screen. They then move randomly up-left, left and down-left. If the Smoregon reaches the top or bottom of the screen it changes direction to move back to the middle. If the Smoregon is directly to the left of the NachenBlaster, it may fire a turnip. If the smoregon collides with the player, it dies and deals 5 points of damage to the player, then may drop either a extra life goodie or repair goodie. If the Smoregon dies, it rewards 250 points to the player.
+
+===Snagglegon===
+Snagglegons are created and placed randomly along the right edge of the screen. They then move up-left, and down-left. If the Snagglegon reaches the top or bottom of the screen it changes direction to move back to the middle. If the Snagglegon is directly to the left of the Nachenblaster, it may fire a torpedo. If the snagglegon collides with the player, it dies and deals 15 points of damage to the player, then may drop a torpedo goodie. If the Snagglegon dies, it rewards 1000 points to the player.
+
+===Star===
+On opening the game, I checked the creation of the first 30 stars by putting a breakpoint at the end of init() in StudentWorld. The stars were randomly placed and correctly sized. When I continued the game, the stars would all move left at the same pace of 1 pixel per tick.
+
+===Cabbage===
+The cabbages launched by the NachenBlaster move right 8 pixels per tick and rotate counterclockwise. When the cabbage collides with another object, the cabbage disappears and damages the other object.
+
+===Turnip===
+The turnips launched by the Smallgons and Smoregons moved left at 6 pixels per tick and rotates counterclockwise. When the turnips collide with the player, they disappear immediately and inflict 2 pts of damage to the player, decreasing the health percentage by 4%.
+
+===FlatulenceTorpedo===
+Torpedoes launched by the player faced right, and moved 8 pixels to the right per tick. As it collides with an alien, the alien takes damage and the torpedo disappears. Torpedoes launched by Snagglegons faced left and moved 8 pixels left per second. As it collides with the player, the player takes 8 points of damage, decreasing the health percentage by 16%. 
+
+===Explosion===
+I killed aliens by colliding with them and shooting them. The resulting explosions placed on the aliens’ locations played the death sound, expanded by a factor of 1.5 each tick and disappeared after 4 ticks.
+
+====RepairGoodie===
+The repair goodie is created at the location of the killed smoregon, then migrates down and left. When it collides with the player, it plays the goodie sound, disappears, increases the player’s score by 100 points and gives the player 10 health points up to 50 total.
+
+===ExtraLifeGoodie===
+The extra life goodie is created at the location of the killed smoregon, then migrates down and left. When it collides with the player, it plays the goodie sound, disappears, increases the player’s score by 100 points and gives the player 1 extra life.
+
+===FlatulenceTorpedoGoodie===
+The flatulence torpedo goodie is created at the location of the killed snagglegon, then migrates down and left. When it collides with the player, it plays the goodie sound, disappears, increases the player’s score by 100 points and gives the player 5 torpedoes.
